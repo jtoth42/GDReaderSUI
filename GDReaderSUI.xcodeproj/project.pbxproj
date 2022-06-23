@@ -11,6 +11,8 @@
 		38207457283F236900331E28 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38207456283F236900331E28 /* ContentView.swift */; };
 		38207459283F236A00331E28 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 38207458283F236A00331E28 /* Assets.xcassets */; };
 		3820745C283F236A00331E28 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3820745B283F236A00331E28 /* Preview Assets.xcassets */; };
+		384292FE285D741100C5A48A /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 384292FD285D741100C5A48A /* StringExtension.swift */; };
+		38A860182849813B007976A4 /* RecordDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A860172849813B007976A4 /* RecordDetail.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +22,8 @@
 		38207458283F236A00331E28 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3820745B283F236A00331E28 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		3820745D283F236A00331E28 /* GDReaderSUI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GDReaderSUI.entitlements; sourceTree = "<group>"; };
+		384292FD285D741100C5A48A /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
+		38A860172849813B007976A4 /* RecordDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordDetail.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +58,8 @@
 			children = (
 				38207454283F236900331E28 /* GDReaderSUIApp.swift */,
 				38207456283F236900331E28 /* ContentView.swift */,
+				38A860172849813B007976A4 /* RecordDetail.swift */,
+				384292FD285D741100C5A48A /* StringExtension.swift */,
 				38207458283F236A00331E28 /* Assets.xcassets */,
 				3820745D283F236A00331E28 /* GDReaderSUI.entitlements */,
 				3820745A283F236A00331E28 /* Preview Content */,
@@ -140,6 +146,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				38207457283F236900331E28 /* ContentView.swift in Sources */,
+				384292FE285D741100C5A48A /* StringExtension.swift in Sources */,
+				38A860182849813B007976A4 /* RecordDetail.swift in Sources */,
 				38207455283F236900331E28 /* GDReaderSUIApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -279,6 +287,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 12.3;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.twx.GDReaderSUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -306,6 +315,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 12.3;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.twx.GDReaderSUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";

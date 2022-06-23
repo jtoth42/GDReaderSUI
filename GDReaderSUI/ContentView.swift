@@ -37,6 +37,7 @@ struct ContentView: View {
   ]
   @State private var sources = ["S001": " TITL Birth Certificate", "S002": "TITL 1920 United States Federal Census"]
   @State private var others = ["O13": "  1 FILE", "X182": "1 CONC Best Man:  Joe Shurilla", "R454928984": "1 NAME State of PA"]
+  @State private var currentFileName: String = "click Open New"
   @State private var text: String = """
   0 HEAD
   1 SOUR ME
@@ -94,6 +95,7 @@ struct ContentView: View {
   var body: some View {
     HStack {
       VStack (alignment: .leading) {
+        Text(currentFileName)
         TextEditor(text: $text)
           .font(.body)
         HStack() {
@@ -191,6 +193,7 @@ struct ContentView: View {
     do {
       let loadedText = try String(contentsOf: url)
       text = loadedText
+      currentFileName = url.lastPathComponent
     }
     catch {
       guard let loadedText = try? String(contentsOf: url, encoding: String.Encoding.macOSRoman) else { return }
