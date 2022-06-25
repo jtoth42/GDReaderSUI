@@ -17,6 +17,6 @@ struct RecordDetail: View {
 
 struct RecordDetail_Previews: PreviewProvider {
     static var previews: some View {
-      RecordDetail(recordText: "TITL 1920 United States Federal Census abc")
+      RecordDetail(recordText: "SOUR\n1 TITL Source One")
     }
 }

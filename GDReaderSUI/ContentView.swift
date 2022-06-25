@@ -8,6 +8,26 @@
 import SwiftUI
 
 struct ContentView: View {
+
+  @State private var text: String = """
+  0 HEAD
+  1 GEDC
+  2 VERS 7.0
+  0 @I1@ INDI
+  1 NAME John /Smith/
+  1 FAMS @F1@
+  0 @I2@ INDI
+  1 NAME Jane /Doe/
+  1 FAMS @F1@
+  0 @F1@ FAM
+  1 HUSB @I1@
+  1 WIFE @I2@
+  0 @S1@ SOUR
+  1 TITL Source One
+  0 @N1@ SNOTE Shared note 1
+  0 TRLR
+  """
+  
   struct Family: Identifiable, Comparable {
     let id: String
     let husb: String
@@ -16,16 +36,9 @@ struct ContentView: View {
     static func < (lhs: Family, rhs: Family) -> Bool { lhs.id < rhs.id }
   }
   @State private var families = [
-    Family(id: "F001", husb: "Toth", wife: "Murtha", textContent: """
-          1 MARR
-          2 DATE 12 SEP 1953
-          2 PLAC Uniontown, Penn.
-          """),
-    Family(id: "F002", husb: "Toth", wife: "Murtha", textContent: """
-                 1 MARR
-                 2 DATE 12 SEP 1953
-                 """)
+    Family(id: "F1", husb: "Smith", wife: "Doe", textContent: "FAM\n1 HUSB @I1@\n1 WIFE @I2@")
   ]
+  
   struct Individual: Identifiable, Comparable {
     let id: String
     let name: String
@@ -33,64 +46,12 @@ struct ContentView: View {
     static func < (lhs: Individual, rhs: Individual) -> Bool { lhs.id < rhs.id }
   }
   @State private var individuals = [
-    Individual(id: "I001", name: "Jim Toth", textContent:"DATE 30 SEP 1955"), Individual(id: "I002", name: "John Toth", textContent:"DATE 9 November 1998")
+    Individual(id: "I1", name: "Smith John", textContent:"INDI\n1 NAME John /Smith/\n1 FAMS @F1@"), Individual(id: "I2", name: "Doe Jane", textContent:"INDI\n1 NAME Jane /Doe/\n1 FAMS @F1@")
   ]
-  @State private var sources = ["S001": " TITL Birth Certificate", "S002": "TITL 1920 United States Federal Census"]
-  @State private var others = ["O13": "  1 FILE", "X182": "1 CONC Best Man:  Joe Shurilla", "R454928984": "1 NAME State of PA"]
+  
+  @State private var sources = ["S1": "SOUR\n1 TITL Source One"]
+  @State private var others = ["HEAD": "1 GEDC\n2 VERS 7.0", "N1": "SNOTE Shared note 1\n0 TRLR"]
   @State private var currentFileName: String = "click Open New"
-  @State private var text: String = """
-  0 HEAD
-  1 SOUR ME
-  1 DATE 26 MAY 2022
-  1 GEDC
-  2 VERS 5.5.1
-  2 FORM LINEAGE-LINKED
-  1 CHAR UTF-8
-  1 SUBM @U1@
-  0 @I1@ INDI
-  1 NAME James John /Toth/
-  1 SEX M
-  1 BIRT
-  2 DATE 30 SEP 1955
-  2 PLAC Waynesburg, Penn.
-  2 SOUR @S1@
-  1 FAMC @F1@
-  0 @I2@ INDI
-  1 NAME John Frank /Toth/
-  1 SEX M
-  1 DEAT
-  2 DATE 9 November 1998
-  1 OBJE @O13@
-  1 FAMS @F1@
-  0 @I3@ INDI
-  1 NAME Irene Catherine /Murtha/
-  1 SEX F
-  1 FAMS @F1@
-  0 @F1@ FAM
-  1 HUSB @I2@
-  1 WIFE @I3@
-  1 MARR
-  2 DATE 12 SEP 1953
-  2 PLAC Uniontown, Penn.
-  1 NOTE @X182@
-  1 CHIL @I1@
-  0 @S1@ SOUR
-  1 TITL Birth Certificate
-  1 REPO @R1@
-  0 @X182@ NOTE
-  1 CONC Best Man:  Joe Shurilla
-  1 CONT Maid of Honor:  Anna Marie Murtha
-  0 @O13@ OBJE
-  1 FILE
-  2 FORM jpg
-  3 TYPE photo
-  2 TITL Obituary for John F. TOTH (Aged 80)
-  0 @R454928984@ REPO
-  1 NAME State of PA
-  0 @U1@ SUBM
-  1 NAME Me
-  0 TRLR
-  """
   
   var body: some View {
     HStack {
