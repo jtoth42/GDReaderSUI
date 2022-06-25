@@ -33,7 +33,7 @@ struct ContentView: View {
     let husb: String
     let wife: String
     let textContent: String
-    static func < (lhs: Family, rhs: Family) -> Bool { lhs.id < rhs.id }
+    static func < (lhs: Family, rhs: Family) -> Bool { lhs.id.localizedStandardCompare(rhs.id) == .orderedAscending }
   }
   @State private var families = [
     Family(id: "F1", husb: "Smith", wife: "Doe", textContent: "FAM\n1 HUSB @I1@\n1 WIFE @I2@")
@@ -43,7 +43,7 @@ struct ContentView: View {
     let id: String
     let name: String
     let textContent: String
-    static func < (lhs: Individual, rhs: Individual) -> Bool { lhs.id < rhs.id }
+    static func < (lhs: Individual, rhs: Individual) -> Bool { lhs.id.localizedStandardCompare(rhs.id) == .orderedAscending }
   }
   @State private var individuals = [
     Individual(id: "I1", name: "Smith John", textContent:"INDI\n1 NAME John /Smith/\n1 FAMS @F1@"), Individual(id: "I2", name: "Doe Jane", textContent:"INDI\n1 NAME Jane /Doe/\n1 FAMS @F1@")
@@ -120,7 +120,7 @@ struct ContentView: View {
         Text("SOUR")
         NavigationView {
           List {
-            ForEach(sources.sorted(by: <), id: \.key) { key, value in
+            ForEach(sources.sorted(by: {$0.key.localizedStandardCompare($1.key) == .orderedAscending}), id: \.key) { key, value in
                 NavigationLink(key, destination: RecordDetail(recordText: value))
             }
            }
@@ -129,7 +129,7 @@ struct ContentView: View {
         Text("Other")
         NavigationView {
           List {
-            ForEach(others.sorted(by: <), id: \.key) { key, value in
+            ForEach(others.sorted(by: {$0.key.localizedStandardCompare($1.key) == .orderedAscending}), id: \.key) { key, value in
                 NavigationLink(key, destination: RecordDetail(recordText: value))
             }
           }
