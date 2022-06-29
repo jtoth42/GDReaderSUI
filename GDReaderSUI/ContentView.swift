@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  GDReaderSUI
 //
-//  Created by Jim on 5/25/22.
+//  Created by Jim Toth on 5/25/22.
 //
 
 import SwiftUI
@@ -26,7 +26,7 @@ struct ContentView: View {
   1 TITL Source One
   0 @N1@ SNOTE Shared note 1
   0 TRLR
-  """
+  """  // Placeholder GEDCOM File
   
   struct Family: Identifiable, Comparable {
     let id: String
@@ -37,21 +37,22 @@ struct ContentView: View {
   }
   @State private var families = [
     Family(id: "F1", husb: "Smith", wife: "Doe", textContent: "FAM\n1 HUSB @I1@\n1 WIFE @I2@")
-  ]
+  ]  // Placeholder, result when "Process" button applied to the placeholder GEDCOM file.
   
-  struct Individual: Identifiable, Comparable {
+  @State private var indKeyPath: KeyPath = \Individual.id
+  struct Individual: Identifiable {
     let id: String
     let name: String
     let textContent: String
-    static func < (lhs: Individual, rhs: Individual) -> Bool { lhs.id.localizedStandardCompare(rhs.id) == .orderedAscending }
   }
   @State private var individuals = [
-    Individual(id: "I1", name: "Smith John", textContent:"INDI\n1 NAME John /Smith/\n1 FAMS @F1@"), Individual(id: "I2", name: "Doe Jane", textContent:"INDI\n1 NAME Jane /Doe/\n1 FAMS @F1@")
-  ]
+    Individual(id: "I1", name: "Smith John", textContent: "INDI\n1 NAME John /Smith/\n1 FAMS @F1@"),
+    Individual(id: "I2", name: "Doe Jane", textContent: "INDI\n1 NAME Jane /Doe/\n1 FAMS @F1@")
+  ]  // Placeholders, result of processing the placeholder GEDCOM file.
   
   @State private var sources = ["S1": "SOUR\n1 TITL Source One"]
   @State private var others = ["HEAD": "1 GEDC\n2 VERS 7.0", "N1": "SNOTE Shared note 1\n0 TRLR"]
-  @State private var currentFileName: String = "click Open New"
+  @State private var currentFileName: String = "click Open New"  // All Placeholders
   
   var body: some View {
     HStack {
@@ -63,22 +64,31 @@ struct ContentView: View {
           Button(action: {
             let openURL = showOpenPanel()
             readText(from: openURL)
-            }, label: {
-              HStack {
-                Image(systemName: "square.and.arrow.up")
-                        Text("Open New")
-              }
-              .frame(width: 120)
-            })
+          }, label: {
+            HStack {
+              Image(systemName: "square.and.arrow.up")
+              Text("Open New")
+            }
+            .frame(width: 120)
+          })
           Button(action: {
               processText()
-            }, label: {
-              Text("Process")
-              .frame(width: 80)
-            })
+          }, label: {
+            Text("Process")
+            .frame(width: 80)
+          })
           Spacer()
+        }
+        .padding()
+        HStack {
+          Spacer()
+          Picker("Sort INDI by", selection: $indKeyPath) {
+            Text("Xref Number").tag(\Individual.id)
+            Text("Surname").tag(\Individual.name)
           }
-          .padding(20)
+          .frame(width: 200)
+        }
+        .padding(.bottom)
       } // end of VStack One Closure
       .frame(width: 300.0)
       VStack (alignment: .leading) {
@@ -106,7 +116,7 @@ struct ContentView: View {
         }
         NavigationView {
           List() {
-            ForEach(individuals.sorted()) { Individual in
+            ForEach(individuals.sorted(by: {$0[keyPath: indKeyPath].localizedStandardCompare($1[keyPath: indKeyPath]) == .orderedAscending})) { Individual in
               NavigationLink( destination: RecordDetail(recordText: Individual.textContent)) {
                 Text(Individual.id)
                 Text(Individual.name)
@@ -154,39 +164,37 @@ struct ContentView: View {
     do {
       let loadedText = try String(contentsOf: url)
       text = loadedText
-      currentFileName = url.lastPathComponent
     }
     catch {
       guard let loadedText = try? String(contentsOf: url, encoding: String.Encoding.macOSRoman) else { return }
-      text = loadedText
+      text = loadedText  // Handles decades old file received "helpfully" encoded for my Mac.
     }
+    currentFileName = url.lastPathComponent
   }
   
   func processText() {
-// Splits "text" into GEDCOM records,
-// and then does additional processing
-// of the family and individual records.
-// The while loop at its beginning
-// reads the full content of the current
-// record and then at the end of the loop
-// reads the xRef for the next record.
-// The TRLR "pseudo-record" gets read into
-// the textContent for the last data record.
+//
+// Splits "text" into GEDCOM records, placing each record into
+// one of four dictionaries. Additional processing is then done.
+// The HEAD record's content is destined for the default otherDict.
+// The TRLR record has no content. Its level and its tag end up
+// being appended to the textContent of the final data record.
+// The while loop begins each pass by reading the entire content
+// of the current record, having already parsed the current xRef
+// near the end of the previous pass through the loop.
+//
     var famDict: [String: String] = [:]
     var indivDict: [String: String] = [:]
     var sourceDict: [String: String] = [:]
     var otherDict: [String: String] = [:]
     let mysca = Scanner(string: text)
-    guard let _ = mysca.scanString("0 "),
-          let _ = mysca.scanString("HEAD")
-    else {
+    guard let _ = mysca.scanString("0 HEAD") else {
       print("failed on header record")
       return
     }
-    var xRef = "HEAD"  // Not an xRef.
+    var xRef = "HEAD"  // Initialized with not an actual xRef.
     while !mysca.isAtEnd {
-      guard let textContent = mysca.scanUpToString("0 @")
-      else {
+      guard let textContent = mysca.scanUpToString("0 @") else {
         print("failed reading up to next record")
         return
       }
@@ -203,18 +211,18 @@ struct ContentView: View {
       if !mysca.isAtEnd {
         guard let _ = mysca.scanString("0 @"),
               let tempXRef = mysca.scanUpToString("@"),
-              let _ = mysca.scanString("@")
-        else {
+              let _ = mysca.scanString("@ ") else {
           print("failed reading next xRef")
           return
         }
         xRef = tempXRef
       }
-    }
-    sources = sourceDict
-    others = otherDict
-// Process the individual name, rearrange with
-// surname first, save surname in its own dict.
+    }  // End of while loop.
+    sources = sourceDict  // No additional processing for display.
+    others = otherDict  // Ditto
+// Parse the individual name, rearrange with
+// surname first, save surname in its own dict for later use.
+// restOfLineFrom is defined in swift file StringExtension
     var surnameDict: [String: String] = [:]
     var localIndividuals: [Individual] = []
     for (indivXRef, indivContent) in indivDict {
@@ -226,7 +234,7 @@ struct ContentView: View {
           let processed = String(parts[0])
           if processed.count == nameValue.count {  // had no slashes, so no surname
             theName = "? " + processed
-            surnameDict[xRef] = "?"
+            surnameDict[indivXRef] = "?"
           }
           else {
             theName = processed + " ?"  // surname only
@@ -250,8 +258,7 @@ struct ContentView: View {
       localIndividuals.append(Individual(id: indivXRef, name: theName ?? "?", textContent: indivContent))
     }
     individuals = localIndividuals
-// Process the individual links for family
-// spouse surnames.
+// Process the family spouse surnames, obtained from the previously saved surnameDict.
     var localFamilies: [Family] = []
     for (famXRef, famContent) in famDict {
       var husband: String? = "noTAG"

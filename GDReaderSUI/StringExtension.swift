@@ -1,14 +1,14 @@
 //
 //  StringExtension.swift
 //
-//  Returns the remainder of a line, after an input prefix String.
+//  Returns the remainder of a line, starting after an input prefix String.
 //
-//  Self could be a multi-line string, so returned is not merely a suffix.
-//  The input prefix need not be the beginning of the line. It is simply
-//  the first occurrence of the input String.
+//  Self may be a multi-line string, so returned is not merely a suffix.
+//  The input prefix need not be the beginning of the line. It will be
+//  the first occurrence in the input String.
 //  Developed for use with a GEDCOM file, where normally the input
-//  literal will specify the beginning of a line, consisting of a level
-//  number and a tag, including their adjacent spaces. Returned is the
+//  String will specify the beginning of a line, consisting of a level
+//  number and a tag, including adjacent spaces. Returned is the
 //  following value. It is assumed that value is short enough to be
 //  contained on one line. Subsequent concatenation or continuation lines
 //  are not followed.

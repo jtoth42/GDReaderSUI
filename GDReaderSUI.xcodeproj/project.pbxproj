@@ -18,7 +18,7 @@
 /* Begin PBXFileReference section */
 		38207451283F236900331E28 /* GDReaderSUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GDReaderSUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		38207454283F236900331E28 /* GDReaderSUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GDReaderSUIApp.swift; sourceTree = "<group>"; };
-		38207456283F236900331E28 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		38207456283F236900331E28 /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		38207458283F236A00331E28 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3820745B283F236A00331E28 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		3820745D283F236A00331E28 /* GDReaderSUI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GDReaderSUI.entitlements; sourceTree = "<group>"; };
