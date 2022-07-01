@@ -30,16 +30,15 @@ struct ContentView: View {
   
   struct Family: Identifiable, Comparable {
     let id: String
-    let husb: String
-    let wife: String
+    var husb: String = "?"
+    var wife: String = "?"
     let textContent: String
     static func < (lhs: Family, rhs: Family) -> Bool { lhs.id.localizedStandardCompare(rhs.id) == .orderedAscending }
   }
   @State private var families = [
-    Family(id: "F1", husb: "Smith", wife: "Doe", textContent: "FAM\n1 HUSB @I1@\n1 WIFE @I2@")
-  ]  // Placeholder, result when "Process" button applied to the placeholder GEDCOM file.
-  
-  @State private var indKeyPath: KeyPath = \Individual.id
+    Family(id: "F1", textContent: "FAM\n1 HUSB @I1@\n1 WIFE @I2@")
+  ]  // Placeholders, from the placeholder GEDCOM file.
+   
   struct Individual: Identifiable {
     let id: String
     let name: String
@@ -48,10 +47,17 @@ struct ContentView: View {
   @State private var individuals = [
     Individual(id: "I1", name: "Smith John", textContent: "INDI\n1 NAME John /Smith/\n1 FAMS @F1@"),
     Individual(id: "I2", name: "Doe Jane", textContent: "INDI\n1 NAME Jane /Doe/\n1 FAMS @F1@")
-  ]  // Placeholders, result of processing the placeholder GEDCOM file.
-  
-  @State private var sources = ["S1": "SOUR\n1 TITL Source One"]
-  @State private var others = ["HEAD": "1 GEDC\n2 VERS 7.0", "N1": "SNOTE Shared note 1\n0 TRLR"]
+  ]  // Placeholders, from the placeholder GEDCOM file.
+  @State private var indKeyPath: KeyPath = \Individual.id
+
+  struct GeneralRecord: Identifiable, Comparable {
+    let id: String
+    let textContent: String
+    static func < (lhs: GeneralRecord, rhs: GeneralRecord) -> Bool { lhs.id.localizedStandardCompare(rhs.id) == .orderedAscending }
+  }
+  @State private var sources = [GeneralRecord(id: "S1", textContent: "SOUR\n1 TITL Source One")]
+  @State private var others = [GeneralRecord(id: "HEAD", textContent: "1 GEDC\n2 VERS 7.0"),
+                               GeneralRecord(id: "N1", textContent: "SNOTE Shared note 1\n0 TRLR")]
   @State private var currentFileName: String = "click Open New"  // All Placeholders
   
   var body: some View {
@@ -130,8 +136,8 @@ struct ContentView: View {
         Text("SOUR")
         NavigationView {
           List {
-            ForEach(sources.sorted(by: {$0.key.localizedStandardCompare($1.key) == .orderedAscending}), id: \.key) { key, value in
-                NavigationLink(key, destination: RecordDetail(recordText: value))
+            ForEach(sources.sorted()) { GeneralRecord in
+              NavigationLink(GeneralRecord.id, destination: TextEditor(text: .constant( GeneralRecord.textContent)))
             }
            }
           Text("No selection")
@@ -139,8 +145,8 @@ struct ContentView: View {
         Text("Other")
         NavigationView {
           List {
-            ForEach(others.sorted(by: {$0.key.localizedStandardCompare($1.key) == .orderedAscending}), id: \.key) { key, value in
-                NavigationLink(key, destination: RecordDetail(recordText: value))
+            ForEach(others.sorted()) { GeneralRecord in
+              NavigationLink(GeneralRecord.id, destination: TextEditor(text: .constant( GeneralRecord.textContent)))
             }
           }
           Text("No selection")
@@ -175,18 +181,19 @@ struct ContentView: View {
   func processText() {
 //
 // Splits "text" into GEDCOM records, placing each record into
-// one of four dictionaries. Additional processing is then done.
-// The HEAD record's content is destined for the default otherDict.
+// one of four bins. Additional processing is done. The HEAD
+// record has content, and is destined for the default others bin.
 // The TRLR record has no content. Its level and its tag end up
 // being appended to the textContent of the final data record.
 // The while loop begins each pass by reading the entire content
-// of the current record, having already parsed the current xRef
-// near the end of the previous pass through the loop.
+// of the current record, after having already parsed the current
+// xRef on the previous pass through the loop.
 //
-    var famDict: [String: String] = [:]
-    var indivDict: [String: String] = [:]
-    var sourceDict: [String: String] = [:]
-    var otherDict: [String: String] = [:]
+    var localFamilies: [Family] = []
+    var localIndividuals: [Individual] = []
+    var surnameDict: [String: String] = [:]
+    var localSources: [GeneralRecord] = []
+    var localOthers: [GeneralRecord] = []
     let mysca = Scanner(string: text)
     guard let _ = mysca.scanString("0 HEAD") else {
       print("failed on header record")
@@ -200,13 +207,45 @@ struct ContentView: View {
       }
       switch xRef[xRef.startIndex] {
       case "F":
-        famDict[xRef] = textContent
+        localFamilies.append(Family(id: xRef, textContent: textContent))
       case "I":
-        indivDict[xRef] = textContent
+// Extra work for individual record. Parse the individual name, rearrange
+// with surname first, save surname in its own dict for later use.
+// The function restOfLineFrom is defined in swift file StringExtension.
+       var theName = "?"
+        if let nameValue = textContent.restOfLineFrom("1 NAME ") {
+          let parts = nameValue.split(separator: "/" )
+          switch parts.count {
+          case 1:
+            let processed = String(parts[0])
+            if processed.count == nameValue.count {  // had no slashes, so no surname
+              theName = "? " + processed
+              surnameDict[xRef] = "?"
+            }
+            else {
+              theName = processed + " ?"  // surname only
+              surnameDict[xRef] = processed
+            }
+          case 2:
+            let given = String(parts[0])
+            let surname = String(parts[1])
+            theName = surname + " " + given
+            surnameDict[xRef] = surname
+          case 3:
+            let given = String(parts[0])
+            let surname = String(parts[1])
+            let suffix = String(parts[2])
+            theName = surname + " " + given + suffix
+            surnameDict[xRef] = surname
+          default:
+            break
+          }
+        }
+        localIndividuals.append(Individual(id: xRef, name: theName, textContent: textContent))
       case "S":
-        sourceDict[xRef] = textContent
+        localSources.append(GeneralRecord(id: xRef, textContent: textContent))
       default:
-        otherDict[xRef] = textContent
+        localOthers.append(GeneralRecord(id: xRef, textContent: textContent))
       }
       if !mysca.isAtEnd {
         guard let _ = mysca.scanString("0 @"),
@@ -218,66 +257,29 @@ struct ContentView: View {
         xRef = tempXRef
       }
     }  // End of while loop.
-    sources = sourceDict  // No additional processing for display.
-    others = otherDict  // Ditto
-// Parse the individual name, rearrange with
-// surname first, save surname in its own dict for later use.
-// restOfLineFrom is defined in swift file StringExtension
-    var surnameDict: [String: String] = [:]
-    var localIndividuals: [Individual] = []
-    for (indivXRef, indivContent) in indivDict {
-      var theName: String?
-      if let nameValue = indivContent.restOfLineFrom("1 NAME ") {
-        let parts = nameValue.split(separator: "/" )
-        switch parts.count {
-        case 1:
-          let processed = String(parts[0])
-          if processed.count == nameValue.count {  // had no slashes, so no surname
-            theName = "? " + processed
-            surnameDict[indivXRef] = "?"
-          }
-          else {
-            theName = processed + " ?"  // surname only
-            surnameDict[indivXRef] = String(processed)
-          }
-        case 2:
-          let given = String(parts[0])
-          let surname = String(parts[1])
-          theName = surname + " " + given
-          surnameDict[indivXRef] = surname
-        case 3:
-          let given = String(parts[0])
-          let surname = String(parts[1])
-          let suffix = String(parts[2])
-          theName = surname + " " + given + suffix
-          surnameDict[indivXRef] = surname
-        default:
-          break
-        }
-      }
-      localIndividuals.append(Individual(id: indivXRef, name: theName ?? "?", textContent: indivContent))
-    }
-    individuals = localIndividuals
+    individuals = localIndividuals  // No additional processing for display.
+    sources = localSources  // Ditto
+    others = localOthers  // Ditto
 // Process the family spouse surnames, obtained from the previously saved surnameDict.
-    var localFamilies: [Family] = []
-    for (famXRef, famContent) in famDict {
+    for (index, currentFamily) in localFamilies.enumerated() {
       var husband: String? = "noTAG"
-      if let husbValue = famContent.restOfLineFrom("1 HUSB ") {
+      if let husbValue = currentFamily.textContent.restOfLineFrom("1 HUSB ") {
         let parts = husbValue.split(separator: "@" )
         if parts.count > 0 {
           let localXRef = String(parts[0])
           husband = surnameDict[localXRef] ?? "noINDI"
-        }
+       }
       }
       var wife: String? = "noTAG"
-      if let wifeValue = famContent.restOfLineFrom("1 WIFE ") {
+      if let wifeValue = currentFamily.textContent.restOfLineFrom("1 WIFE ") {
         let parts = wifeValue.split(separator: "@" )
         if parts.count > 0 {
           let localXRef = String(parts[0])
           wife = surnameDict[localXRef] ?? "noINDI"
          }
       }
-      localFamilies.append(Family(id: famXRef, husb: husband ?? "?", wife: wife ?? "?", textContent: famContent))
+      localFamilies[index].husb = husband ?? "?"
+      localFamilies[index].wife = wife ?? "?"
     }
     families = localFamilies
   }
