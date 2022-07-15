@@ -3,15 +3,15 @@
 //
 //  Returns the remainder of a line, starting after an input prefix String.
 //
-//  Self may be a multi-line string, so returned is not merely a suffix.
+//  Self may have multiple lines, and so returned is not merely a suffix.
 //  The input prefix need not be the beginning of the line. It will be
-//  the first occurrence in the input String.
-//  Developed for use with a GEDCOM file, where normally the input
+//  the first occurrence found in Self.
+//  Developed for use with a GEDCOM file, where typically the input
 //  String will specify the beginning of a line, consisting of a level
-//  number and a tag, including adjacent spaces. Returned is the
-//  following value. It is assumed that value is short enough to be
-//  contained on one line. Subsequent concatenation or continuation lines
-//  are not followed.
+//  number and a tag, including their adjacent spaces. Returned is the
+//  following value. It is intended for use with tag values short enough
+//  to be contained on one line, and so assumed that there are no subsequent
+//  concatenation or continuation lines. If so, they are not followed.
 //  Created by Jim Toth on 6/16/22.
 //
 

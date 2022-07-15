@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  GDReaderSUI
 //
-//  Created by Jim Toth on 5/25/22.
+//  Created by Jim Toth May 2022, last updated July 2022.
 //
 
 import SwiftUI
@@ -48,7 +48,7 @@ struct ContentView: View {
     Individual(id: "I1", name: "Smith John", textContent: "INDI\n1 NAME John /Smith/\n1 FAMS @F1@"),
     Individual(id: "I2", name: "Doe Jane", textContent: "INDI\n1 NAME Jane /Doe/\n1 FAMS @F1@")
   ]  // Placeholders, from the placeholder GEDCOM file.
-  @State private var indKeyPath: KeyPath = \Individual.id
+  @State private var indKeyPath: KeyPath = \Individual.id  // Default for the Picker in the body below.
 
   struct GeneralRecord: Identifiable, Comparable {
     let id: String
@@ -61,10 +61,10 @@ struct ContentView: View {
   @State private var currentFileName: String = "click Open New"  // All Placeholders
   
   var body: some View {
-    HStack {
+    HStack {  // Three vertical stacks, side by side
       VStack (alignment: .leading) {
         Text(currentFileName)
-        TextEditor(text: $text)
+        TextEditor(text: .constant(text))
           .font(.body)
         HStack() {
           Button(action: {
@@ -105,13 +105,13 @@ struct ContentView: View {
         }
         NavigationView {
           List() {
-             ForEach(families.sorted()) { Family in
-                NavigationLink( destination: RecordDetail(recordText: Family.textContent)) {
-                  Text(Family.id)
-                  Text(Family.husb)
-                  Text(Family.wife)
-                }
-             }
+            ForEach(families.sorted()) { Family in
+              NavigationLink(destination: TextEditor(text: .constant(Family.textContent))) {
+                Text(Family.id)
+                Text(Family.husb)
+                Text(Family.wife)
+              }
+            }
           }
           Text("No selection")
         }
@@ -123,7 +123,7 @@ struct ContentView: View {
         NavigationView {
           List() {
             ForEach(individuals.sorted(by: {$0[keyPath: indKeyPath].localizedStandardCompare($1[keyPath: indKeyPath]) == .orderedAscending})) { Individual in
-              NavigationLink( destination: RecordDetail(recordText: Individual.textContent)) {
+              NavigationLink(destination: TextEditor(text: .constant(Individual.textContent))) {
                 Text(Individual.id)
                 Text(Individual.name)
               }
@@ -172,21 +172,21 @@ struct ContentView: View {
       text = loadedText
     }
     catch {
-      guard let loadedText = try? String(contentsOf: url, encoding: String.Encoding.macOSRoman) else { return }
-      text = loadedText  // Handles decades old file received "helpfully" encoded for my Mac.
+      guard let loadedText = try? String(contentsOf: url, encoding: String.Encoding.macOSRoman) else { return }  // Handles a file encoded decades ago for Mac.
+      text = loadedText
     }
     currentFileName = url.lastPathComponent
   }
   
   func processText() {
 //
-// Splits "text" into GEDCOM records, placing each record into
-// one of four bins. Additional processing is done. The HEAD
-// record has content, and is destined for the default others bin.
-// The TRLR record has no content. Its level and its tag end up
-// being appended to the textContent of the final data record.
+// Splits "text" into GEDCOM records, placing each record into one
+// of four bins. Some additional processing is done. The header record
+// tag HEAD and content are destined for the default bin, Others.
+// The trailer record has no content. Its level and its TRLR tag
+// end up appended to the textContent of the final data record.
 // The while loop begins each pass by reading the entire content
-// of the current record, after having already parsed the current
+// of the current record, having already parsed the current
 // xRef on the previous pass through the loop.
 //
     var localFamilies: [Family] = []
@@ -209,17 +209,18 @@ struct ContentView: View {
       case "F":
         localFamilies.append(Family(id: xRef, textContent: textContent))
       case "I":
-// Extra work for individual record. Parse the individual name, rearrange
-// with surname first, save surname in its own dict for later use.
-// The function restOfLineFrom is defined in swift file StringExtension.
-       var theName = "?"
+// For this case, an individual record, there is extra work to generate the name.
+// Parse the individual name, rearrange with surname first, save surname in
+// its own dict for later use.
+// Function restOfLineFrom is defined in this project's StringExtension.swift.
+        var theName = "?"
         if let nameValue = textContent.restOfLineFrom("1 NAME ") {
-          let parts = nameValue.split(separator: "/" )
+          let parts = nameValue.split(separator: "/")
           switch parts.count {
           case 1:
             let processed = String(parts[0])
-            if processed.count == nameValue.count {  // had no slashes, so no surname
-              theName = "? " + processed
+            if processed.count == nameValue.count {
+              theName = "? " + processed  // had no slashes, so no surname
               surnameDict[xRef] = "?"
             }
             else {
@@ -268,7 +269,7 @@ struct ContentView: View {
         if parts.count > 0 {
           let localXRef = String(parts[0])
           husband = surnameDict[localXRef] ?? "noINDI"
-       }
+        }
       }
       var wife: String? = "noTAG"
       if let wifeValue = currentFamily.textContent.restOfLineFrom("1 WIFE ") {
@@ -276,7 +277,7 @@ struct ContentView: View {
         if parts.count > 0 {
           let localXRef = String(parts[0])
           wife = surnameDict[localXRef] ?? "noINDI"
-         }
+        }
       }
       localFamilies[index].husb = husband ?? "?"
       localFamilies[index].wife = wife ?? "?"
