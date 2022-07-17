@@ -182,7 +182,7 @@ struct ContentView: View {
 //
 // Splits "text" into GEDCOM records, placing each record into one
 // of four bins. Some additional processing is done. The header record
-// tag HEAD and content are destined for the default bin, Others.
+// tag, HEAD, and content are destined for the default bin, Others.
 // The trailer record has no content. Its level and its TRLR tag
 // end up appended to the textContent of the final data record.
 // The while loop begins each pass by reading the entire content
