@@ -6,7 +6,7 @@ For manually browsing a GEDCOM file.
 
 An Xcode project. The project name is *GDReaderSUI*, because the current version was updated to use SwiftUI. This macOS app is not a GEDCOM parser, though a small amount of parsing is done. The app separates the GEDCOM file into records, then makes the contents of the records available in master-detail (navigation) views. This facilitates browsing the file. Links can be easily followed from a family record to an individual record, and back, and to source and other records.
 
-![Screenshot](Screenshot.jpg)
+![Screenshot](GDReaderSUI/Screenshot.jpg)
 
 ### Motivation
 
